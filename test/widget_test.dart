@@ -21,11 +21,10 @@ void main() {
     expect(find.text('SkyCast'), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
 
-    // Verify presence of all 4 key navigation destinations
+    // Verify presence of all 3 key navigation destinations
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Hourly (24h)'), findsOneWidget);
     expect(find.text('Activities'), findsOneWidget);
-    expect(find.text('Figma Flow'), findsOneWidget);
 
     // Pump past the async timer delay
     await tester.pump(const Duration(milliseconds: 1200));

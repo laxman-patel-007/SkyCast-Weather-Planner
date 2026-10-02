@@ -9,7 +9,11 @@ enum WeatherCondition {
   heavyRain,
   thunderstorm,
   windy,
-  clearNight;
+  clearNight,
+  snowy,
+  foggy,
+  hail,
+  heatWave;
 
   String get displayName {
     switch (this) {
@@ -29,6 +33,14 @@ enum WeatherCondition {
         return 'Breezy & Windy';
       case WeatherCondition.clearNight:
         return 'Clear Night';
+      case WeatherCondition.snowy:
+        return 'Snow & Flurries';
+      case WeatherCondition.foggy:
+        return 'Fog & Mountain Mist';
+      case WeatherCondition.hail:
+        return 'Hail & Ice Sleet';
+      case WeatherCondition.heatWave:
+        return 'Severe Heat Wave';
     }
   }
 
@@ -50,6 +62,14 @@ enum WeatherCondition {
         return Icons.air_rounded;
       case WeatherCondition.clearNight:
         return Icons.nights_stay_rounded;
+      case WeatherCondition.snowy:
+        return Icons.ac_unit_rounded;
+      case WeatherCondition.foggy:
+        return Icons.cloud_outlined;
+      case WeatherCondition.hail:
+        return Icons.lens_blur_rounded;
+      case WeatherCondition.heatWave:
+        return Icons.whatshot_rounded;
     }
   }
 
@@ -102,6 +122,30 @@ enum WeatherCondition {
           Color(0xFF0F2027),
           Color(0xFF203A43),
           Color(0xFF2C5364),
+        ];
+      case WeatherCondition.snowy:
+        return const [
+          Color(0xFF4B6CB7),
+          Color(0xFF182848),
+          Color(0xFF000428),
+        ];
+      case WeatherCondition.foggy:
+        return const [
+          Color(0xFF4A5568),
+          Color(0xFF2D3748),
+          Color(0xFF1A202C),
+        ];
+      case WeatherCondition.hail:
+        return const [
+          Color(0xFF1E3A8A),
+          Color(0xFF1E293B),
+          Color(0xFF0F172A),
+        ];
+      case WeatherCondition.heatWave:
+        return const [
+          Color(0xFFDC2626),
+          Color(0xFFEA580C),
+          Color(0xFF991B1B),
         ];
     }
   }

@@ -17,6 +17,8 @@ class WeatherForecast {
   final List<HourlyForecast> hourlyForecasts;
   final DateTime fetchedAt;
   final bool isFromCache;
+  final int barometricPressure;
+  final double visibilityKm;
 
   WeatherForecast({
     required this.locationName,
@@ -33,6 +35,8 @@ class WeatherForecast {
     required this.hourlyForecasts,
     required this.fetchedAt,
     this.isFromCache = false,
+    this.barometricPressure = 1013,
+    this.visibilityKm = 10.0,
   });
 
   WeatherForecast copyWith({
@@ -50,6 +54,8 @@ class WeatherForecast {
     List<HourlyForecast>? hourlyForecasts,
     DateTime? fetchedAt,
     bool? isFromCache,
+    int? barometricPressure,
+    double? visibilityKm,
   }) {
     return WeatherForecast(
       locationName: locationName ?? this.locationName,
@@ -66,6 +72,8 @@ class WeatherForecast {
       hourlyForecasts: hourlyForecasts ?? this.hourlyForecasts,
       fetchedAt: fetchedAt ?? this.fetchedAt,
       isFromCache: isFromCache ?? this.isFromCache,
+      barometricPressure: barometricPressure ?? this.barometricPressure,
+      visibilityKm: visibilityKm ?? this.visibilityKm,
     );
   }
 
@@ -85,6 +93,8 @@ class WeatherForecast {
       'hourlyForecasts': hourlyForecasts.map((h) => h.toJson()).toList(),
       'fetchedAt': fetchedAt.toIso8601String(),
       'isFromCache': isFromCache,
+      'barometricPressure': barometricPressure,
+      'visibilityKm': visibilityKm,
     };
   }
 
@@ -107,6 +117,8 @@ class WeatherForecast {
           .toList(),
       fetchedAt: DateTime.tryParse(json['fetchedAt'] as String? ?? '') ?? DateTime.now(),
       isFromCache: json['isFromCache'] as bool? ?? false,
+      barometricPressure: (json['barometricPressure'] as num?)?.toInt() ?? 1013,
+      visibilityKm: (json['visibilityKm'] as num?)?.toDouble() ?? 10.0,
     );
   }
 }

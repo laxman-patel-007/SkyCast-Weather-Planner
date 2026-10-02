@@ -1,11 +1,36 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skycast/models/activity_suggestion.dart';
 import 'package:skycast/models/hourly_forecast.dart';
 import 'package:skycast/models/weather_condition.dart';
 import 'package:skycast/models/weather_forecast.dart';
+import 'package:skycast/providers/theme_provider.dart';
 import 'package:skycast/services/activity_planner_service.dart';
 
 void main() {
+  group('Theme Mode & Persistence Tests', () {
+    test('ThemeProvider initializes and toggles theme with persistence', () async {
+      SharedPreferences.setMockInitialValues({});
+      final themeProvider = ThemeProvider();
+      await themeProvider.init();
+
+      expect(themeProvider.themeMode, equals(ThemeMode.light));
+
+      await themeProvider.setThemeMode(ThemeMode.dark);
+      expect(themeProvider.themeMode, equals(ThemeMode.dark));
+      expect(themeProvider.isDarkMode, isTrue);
+
+      await themeProvider.toggleTheme();
+      expect(themeProvider.themeMode, equals(ThemeMode.light));
+      expect(themeProvider.isDarkMode, isFalse);
+
+      // Verify persistence by initializing a new instance
+      final reloadedProvider = ThemeProvider();
+      await reloadedProvider.init();
+      expect(reloadedProvider.themeMode, equals(ThemeMode.light));
+    });
+  });
   group('Syllabus Session 4 & 5: Dart OOP & Model Serialization Tests', () {
     test('WeatherCondition parses from strings accurately', () {
       expect(WeatherCondition.fromString('sunny'), equals(WeatherCondition.sunny));
@@ -141,5 +166,63 @@ void main() {
       expect(cycling.score, lessThan(65));
       expect(cycling.justification, contains('crosswinds'));
     });
+
+    test('Evaluates expanded weather conditions accurately', () {
+      expect(WeatherCondition.fromString('snowy'), equals(WeatherCondition.snowy));
+      expect(WeatherCondition.fromString('foggy'), equals(WeatherCondition.foggy));
+      expect(WeatherCondition.fromString('hail'), equals(WeatherCondition.hail));
+      expect(WeatherCondition.fromString('heatWave'), equals(WeatherCondition.heatWave));
+      expect(WeatherCondition.snowy.displayName, contains('Snow'));
+      expect(WeatherCondition.heatWave.displayName, contains('Heat Wave'));
+    });
+
+    test('ActivityPlannerService evaluates full catalog of 10 diverse activities', () {
+      final forecast = WeatherForecast(
+        locationName: 'Stargazer Hill',
+        areaCoordinates: '0, 0',
+        currentTemp: 18.0,
+        highTemp: 22.0,
+        lowTemp: 12.0,
+        currentCondition: WeatherCondition.clearNight,
+        currentWindSpeed: 6.0,
+        currentRainChance: 0,
+        currentHumidity: 45,
+        airQualityIndex: 20,
+        weatherHeadline: 'Pristine nocturnal dark sky',
+        hourlyForecasts: [],
+        fetchedAt: DateTime.now(),
+        barometricPressure: 1018,
+        visibilityKm: 20.0,
+      );
+
+      final activities = planner.evaluateActivities(forecast: forecast);
+      expect(activities.length, equals(10));
+
+      final activityIds = activities.map((a) => a.id).toSet();
+      expect(activityIds, containsAll([
+        'jogging',
+        'picnic',
+        'cycling',
+        'hiking',
+        'kayaking',
+        'tennis',
+        'stargazing',
+        'yoga',
+        'bouldering',
+        'photography',
+      ]));
+
+      // Stargazing should score very high on a clear night with low wind and no rain
+      final stargazing = activities.firstWhere((a) => a.id == 'stargazing');
+      expect(stargazing.score, greaterThanOrEqualTo(85));
+      expect(stargazing.suitability, equals(SuitabilityLevel.ideal));
+      expect(stargazing.justification, contains('Pristine nocturnal sky'));
+
+      // Kayaking on calm water (6 km/h wind) should score well
+      final kayaking = activities.firstWhere((a) => a.id == 'kayaking');
+      expect(kayaking.score, greaterThan(80));
+      expect(kayaking.justification, contains('Glassy water'));
+    });
   });
 }
+

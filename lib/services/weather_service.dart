@@ -13,6 +13,8 @@ class WeatherLocationPreset {
   final double baseWind;
   final int baseRain;
   final String description;
+  final int basePressure;
+  final double baseVisibility;
 
   const WeatherLocationPreset({
     required this.id,
@@ -23,6 +25,8 @@ class WeatherLocationPreset {
     required this.baseWind,
     required this.baseRain,
     required this.description,
+    this.basePressure = 1013,
+    this.baseVisibility = 10.0,
   });
 }
 
@@ -39,6 +43,8 @@ class WeatherService {
       baseWind: 12.0,
       baseRain: 10,
       description: 'Temperate parkland with gentle canopy breezes and mild humidity.',
+      basePressure: 1014,
+      baseVisibility: 10.0,
     ),
     WeatherLocationPreset(
       id: 'coastal_harbor',
@@ -49,6 +55,8 @@ class WeatherService {
       baseWind: 26.0,
       baseRain: 25,
       description: 'Maritime waterfront with steady offshore wind and moderate UV.',
+      basePressure: 1011,
+      baseVisibility: 12.0,
     ),
     WeatherLocationPreset(
       id: 'rainy_highlands',
@@ -59,6 +67,8 @@ class WeatherService {
       baseWind: 18.0,
       baseRain: 65,
       description: 'Elevated topography experiencing recurring afternoon precipitation.',
+      basePressure: 998,
+      baseVisibility: 6.5,
     ),
     WeatherLocationPreset(
       id: 'sunny_plateau',
@@ -69,6 +79,56 @@ class WeatherService {
       baseWind: 8.0,
       baseRain: 5,
       description: 'Clear radiant sunshine with peak midday solar exposure.',
+      basePressure: 1016,
+      baseVisibility: 15.0,
+    ),
+    WeatherLocationPreset(
+      id: 'alpine_summit',
+      name: 'Alpine Pine Summit (Alt 2,400m)',
+      coordinates: '32.2396° N, 77.1887° E',
+      baseTemp: -2.5,
+      baseCondition: WeatherCondition.snowy,
+      baseWind: 28.0,
+      baseRain: 70,
+      description: 'Sub-zero mountain alpine ridge with blowing snow flurries and thin atmosphere.',
+      basePressure: 785,
+      baseVisibility: 4.0,
+    ),
+    WeatherLocationPreset(
+      id: 'lakeside_mist',
+      name: 'Lakeside Wetland Sanctuary',
+      coordinates: '26.9124° N, 75.7873° E',
+      baseTemp: 14.0,
+      baseCondition: WeatherCondition.foggy,
+      baseWind: 5.0,
+      baseRain: 20,
+      description: 'Valley basin characterized by dense morning mist, high dewpoint, and glass-still waters.',
+      basePressure: 1018,
+      baseVisibility: 2.2,
+    ),
+    WeatherLocationPreset(
+      id: 'desert_oasis',
+      name: 'Desert Oasis Dunes',
+      coordinates: '26.2389° N, 73.0243° E',
+      baseTemp: 38.5,
+      baseCondition: WeatherCondition.heatWave,
+      baseWind: 16.0,
+      baseRain: 0,
+      description: 'Arid desert thermal zone with extreme solar heating and low relative humidity.',
+      basePressure: 1007,
+      baseVisibility: 16.0,
+    ),
+    WeatherLocationPreset(
+      id: 'stargazer_hill',
+      name: 'Stargazer Hill Dark-Sky Reserve',
+      coordinates: '30.3165° N, 78.0322° E',
+      baseTemp: 11.0,
+      baseCondition: WeatherCondition.clearNight,
+      baseWind: 7.0,
+      baseRain: 0,
+      description: 'Protected astronomical dark-sky enclave with crystal stellar visibility and zero light pollution.',
+      basePressure: 1022,
+      baseVisibility: 20.0,
     ),
   ];
 
@@ -80,7 +140,7 @@ class WeatherService {
   }) async {
     // Session 6: Asynchronous simulation using Future.delayed with try/catch/finally
     try {
-      await Future.delayed(const Duration(milliseconds: 900));
+      await Future.delayed(const Duration(milliseconds: 350));
 
       if (simulateNetworkError) {
         throw Exception('Simulated network timeout (Offline Mode demonstration)');
@@ -104,12 +164,12 @@ class WeatherService {
         final diurnalOffset = sin((hourOfDay - 6) / 24.0 * 2 * pi) * 5.0;
         final noise = (random.nextDouble() - 0.5) * 1.5;
         final temp = (preset.baseTemp + diurnalOffset + noise);
-        final feelsLike = temp + (preset.baseRain > 30 ? -1.0 : 1.2);
+        final feelsLike = temp + (preset.baseRain > 30 ? -1.0 : (preset.baseTemp > 30 ? 3.0 : 0.8));
 
         // Wind fluctuation
-        final wind = (preset.baseWind + sin(i / 3.0) * 4.0 + random.nextDouble() * 3.0).clamp(3.0, 50.0);
+        final wind = (preset.baseWind + sin(i / 3.0) * 4.0 + random.nextDouble() * 3.0).clamp(2.0, 65.0);
 
-        // Rain chance based on preset base with diurnal variability
+        // Rain/precipitation chance based on preset base with diurnal variability
         int rainChance = preset.baseRain;
         if (hourOfDay >= 13 && hourOfDay <= 18 && preset.baseCondition == WeatherCondition.rainy) {
           rainChance = (rainChance + 20).clamp(0, 95);
@@ -119,7 +179,13 @@ class WeatherService {
 
         // Determine condition per hour
         WeatherCondition hourCondition;
-        if (rainChance >= 60) {
+        if (preset.baseCondition == WeatherCondition.snowy || temp <= 1.0) {
+          hourCondition = wind > 35 ? WeatherCondition.hail : WeatherCondition.snowy;
+        } else if (preset.baseCondition == WeatherCondition.heatWave || temp >= 35.0) {
+          hourCondition = WeatherCondition.heatWave;
+        } else if (preset.baseCondition == WeatherCondition.foggy && (hourOfDay <= 9 || hourOfDay >= 20)) {
+          hourCondition = WeatherCondition.foggy;
+        } else if (rainChance >= 60) {
           hourCondition = rainChance > 80 ? WeatherCondition.heavyRain : WeatherCondition.rainy;
         } else if (wind >= 24) {
           hourCondition = WeatherCondition.windy;
@@ -131,12 +197,26 @@ class WeatherService {
           hourCondition = preset.baseCondition;
         }
 
-        // UV index estimation based on hour of day
+        // Visibility calculation based on conditions
+        double vis = preset.baseVisibility;
+        if (hourCondition == WeatherCondition.foggy) {
+          vis = (1.5 + random.nextDouble() * 1.5);
+        } else if (hourCondition == WeatherCondition.heavyRain || hourCondition == WeatherCondition.snowy) {
+          vis = (3.0 + random.nextDouble() * 2.0);
+        } else if (hourCondition == WeatherCondition.rainy) {
+          vis = (5.5 + random.nextDouble() * 2.0);
+        }
+
+        // UV index estimation based on hour of day and cloudiness
         double uv = 0.0;
         if (hourOfDay >= 8 && hourOfDay <= 17) {
-          uv = (sin((hourOfDay - 8) / 9.0 * pi) * 8.5).clamp(0.0, 11.0);
-          if (rainChance > 40) uv *= 0.4;
+          uv = (sin((hourOfDay - 8) / 9.0 * pi) * (preset.baseCondition == WeatherCondition.heatWave ? 11.5 : 8.5)).clamp(0.0, 12.0);
+          if (rainChance > 40 || hourCondition == WeatherCondition.cloudy) uv *= 0.4;
+          if (hourCondition == WeatherCondition.foggy) uv *= 0.3;
         }
+
+        // Pressure variation
+        final pressure = preset.basePressure + (sin(i / 6.0) * 3).round();
 
         hourly.add(HourlyForecast(
           time: hourTime,
@@ -145,9 +225,11 @@ class WeatherService {
           condition: hourCondition,
           windSpeedKmh: double.parse(wind.toStringAsFixed(1)),
           rainChancePct: rainChance,
-          humidity: (55 + sin(i / 4.0) * 15).clamp(30, 95).toInt(),
+          humidity: (55 + sin(i / 4.0) * 15 + (hourCondition == WeatherCondition.foggy ? 30 : 0)).clamp(15, 98).toInt(),
           uvIndex: double.parse(uv.toStringAsFixed(1)),
           summary: _getSummaryFor(hourCondition, temp, rainChance),
+          pressureHpa: pressure,
+          visibilityKm: double.parse(vis.toStringAsFixed(1)),
         ));
       }
 
@@ -165,11 +247,13 @@ class WeatherService {
         currentWindSpeed: hourly.first.windSpeedKmh,
         currentRainChance: hourly.first.rainChancePct,
         currentHumidity: hourly.first.humidity,
-        airQualityIndex: 42 + random.nextInt(18),
+        airQualityIndex: (preset.id == 'alpine_summit' ? 14 : (42 + random.nextInt(18))),
         weatherHeadline: preset.description,
         hourlyForecasts: hourly,
         fetchedAt: DateTime.now(),
         isFromCache: false,
+        barometricPressure: hourly.first.pressureHpa,
+        visibilityKm: hourly.first.visibilityKm,
       );
     } catch (e) {
       rethrow;
@@ -177,6 +261,10 @@ class WeatherService {
   }
 
   String _getSummaryFor(WeatherCondition condition, double temp, int rainChance) {
+    if (condition == WeatherCondition.snowy) return 'Freezing temperatures and snow flurries; winter gear essential.';
+    if (condition == WeatherCondition.heatWave) return 'Dangerous excessive heat warning; limit direct outdoor exposure.';
+    if (condition == WeatherCondition.foggy) return 'Reduced visibility due to fog; caution advised during travel.';
+    if (condition == WeatherCondition.clearNight) return 'Pristine nocturnal sky; excellent conditions for stargazing.';
     if (rainChance >= 60) return 'Rain gear advised; precipitation expected.';
     if (temp > 28) return 'Warm sunny conditions; carry sun protection.';
     if (temp < 14) return 'Crisp cooler air; light layers recommended.';

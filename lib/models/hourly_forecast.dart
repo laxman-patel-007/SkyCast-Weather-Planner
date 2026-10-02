@@ -12,6 +12,8 @@ class HourlyForecast {
   final int humidity;
   final double uvIndex;
   final String summary;
+  final int pressureHpa;
+  final double visibilityKm;
 
   HourlyForecast({
     required this.time,
@@ -23,6 +25,8 @@ class HourlyForecast {
     required this.humidity,
     required this.uvIndex,
     required this.summary,
+    this.pressureHpa = 1013,
+    this.visibilityKm = 10.0,
   });
 
   String get formattedHour => DateFormat('h a').format(time);
@@ -33,6 +37,8 @@ class HourlyForecast {
   String get formattedRain => '$rainChancePct%';
   String get formattedHumidity => '$humidity%';
   String get formattedUv => uvIndex.toStringAsFixed(1);
+  String get formattedPressure => '$pressureHpa hPa';
+  String get formattedVisibility => '${visibilityKm.toStringAsFixed(1)} km';
 
   bool get isRainLikely => rainChancePct >= 40;
   bool get isBreezy => windSpeedKmh >= 25;
@@ -48,6 +54,8 @@ class HourlyForecast {
       'humidity': humidity,
       'uvIndex': uvIndex,
       'summary': summary,
+      'pressureHpa': pressureHpa,
+      'visibilityKm': visibilityKm,
     };
   }
 
@@ -62,6 +70,8 @@ class HourlyForecast {
       humidity: (json['humidity'] as num?)?.toInt() ?? 55,
       uvIndex: (json['uvIndex'] as num?)?.toDouble() ?? 3.0,
       summary: json['summary'] as String? ?? 'Fair outdoor weather',
+      pressureHpa: (json['pressureHpa'] as num?)?.toInt() ?? 1013,
+      visibilityKm: (json['visibilityKm'] as num?)?.toDouble() ?? 10.0,
     );
   }
 }

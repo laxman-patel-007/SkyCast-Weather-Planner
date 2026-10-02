@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// Clean metric chip widget displaying weather atmospheric values
+/// Clean, informative metric chip displaying atmospheric metrics with plain-English status
 class MetricChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final String? status;
   final Color? iconColor;
   final bool isCompact;
 
@@ -13,6 +14,7 @@ class MetricChip extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.status,
     this.iconColor,
     this.isCompact = false,
   });
@@ -29,7 +31,7 @@ class MetricChip extends StatelessWidget {
             value,
             style: const TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
           ),
@@ -38,13 +40,13 @@ class MetricChip extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
+          color: Colors.white.withValues(alpha: 0.25),
+          width: 1.2,
         ),
       ),
       child: Column(
@@ -53,30 +55,55 @@ class MetricChip extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: iconColor ?? Colors.white.withValues(alpha: 0.85)),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 14, color: iconColor ?? Colors.white),
+              ),
               const SizedBox(width: 6),
-              Flexible(
+              Expanded(
                 child: Text(
                   label,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    letterSpacing: -0.1,
                   ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
           Text(
             value,
             style: const TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
+              letterSpacing: -0.3,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
+          if (status != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              status!,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.85),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
     );
